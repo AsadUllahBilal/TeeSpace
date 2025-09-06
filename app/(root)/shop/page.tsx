@@ -46,23 +46,32 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
   }
   
   // Fetch products from our new API
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-  const response = await fetch(`${baseUrl}/api/products/shop?${apiParams.toString()}`, {
-    cache: 'no-store', // Ensure fresh data for SSR
-  });
+  // Use dynamic URL construction for Vercel deployment
+  const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
+  const host = process.env.VERCEL_URL || process.env.NEXT_PUBLIC_BASE_URL?.replace(/^https?:\/\//, '') || 'localhost:3000';
+  const baseUrl = `${protocol}://${host}`;
   
-  const data = await response.json();
+  let productsData = [];
+  let paginationData = { total: 0, totalPages: 0, hasMore: false };
   
-  if (!response.ok) {
-    throw new Error('Failed to fetch products');
+  try {
+    const response = await fetch(`${baseUrl}/api/products/shop?${apiParams.toString()}`, {
+      cache: 'no-store', // Ensure fresh data for SSR
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      productsData = data.products;
+      paginationData = data.pagination;
+    }
+  } catch (error) {
+    console.error('Failed to fetch products:', error);
+    // Continue with empty products - component will handle gracefully
   }
   
-  const products = data.products;
-  const pagination = data.pagination;
-  
-  const totalProducts = pagination.total;
-  const totalPages = pagination.totalPages;
-  const hasMore = pagination.hasMore;
+  const totalProducts = paginationData.total;
+  const totalPages = paginationData.totalPages;
+  const hasMore = paginationData.hasMore;
 
   // Get all categories for filter sidebar
   const allCategories = await Category.find({}).sort({ name: 1 }).lean();
@@ -77,13 +86,13 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
   const availableColors = colorResults.map(c => c._id);
 
   // Convert to plain objects for Next.js serialization
-  const productsData: IProduct[] = JSON.parse(JSON.stringify(products));
+  const products: IProduct[] = JSON.parse(JSON.stringify(productsData));
 
   return (
     <div className="w-full min-h-full">
       <PageBanner bannerName="Shop" />
       <ShopClient 
-        initialProducts={productsData} 
+        initialProducts={products} 
         currentPage={page}
         totalPages={totalPages}
         totalProducts={totalProducts}
