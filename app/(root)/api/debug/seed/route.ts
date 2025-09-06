@@ -24,6 +24,7 @@ export async function GET(req: NextRequest) {
           id: p._id,
           title: p.title,
           price: p.price,
+          slug: p.slug,
           category: p.category,
           images: p.images,
         })),
@@ -92,6 +93,21 @@ export async function POST(req: NextRequest) {
         ],
         averageRating: 4.5,
         reviewCount: 25
+      },
+      {
+        title: 'Classic White T-Shirt',
+        description: 'A pristine white t-shirt made from premium cotton. Essential for any wardrobe.',
+        price: 24.99,
+        category: createdCategories[0]._id,
+        colors: ['White', 'Off-White', 'Cream'],
+        sizes: ['S', 'M', 'L', 'XL'],
+        stockQuantity: 120,
+        images: [
+          'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=500',
+          'https://images.unsplash.com/photo-1503341504253-dff4815485f1?w=500'
+        ],
+        averageRating: 4.6,
+        reviewCount: 35
       },
       {
         title: 'Vintage Band Tee',
