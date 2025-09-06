@@ -19,14 +19,22 @@ export default async function Home() {
   let hasMore = false;
   
   try {
+    console.log('Fetching products from:', `${baseUrl}/api/products/home?page=1&limit=8&randomize=true`);
     const response = await fetch(`${baseUrl}/api/products/home?page=1&limit=8&randomize=true`, {
       cache: 'no-store', // Ensure fresh randomized data on each visit
     });
     
+    console.log('API Response status:', response.status, response.statusText);
+    
     if (response.ok) {
       const data = await response.json();
-      products = data.products;
-      hasMore = data.pagination.hasMore;
+      console.log('Products fetched successfully:', data.products?.length || 0);
+      products = data.products || [];
+      hasMore = data.pagination?.hasMore || false;
+    } else {
+      console.error('API response not OK:', response.status, response.statusText);
+      const errorText = await response.text();
+      console.error('Error response body:', errorText);
     }
   } catch (error) {
     console.error('Failed to fetch products:', error);

@@ -55,14 +55,22 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
   let paginationData = { total: 0, totalPages: 0, hasMore: false };
   
   try {
+    console.log('Shop: Fetching products from:', `${baseUrl}/api/products/shop?${apiParams.toString()}`);
     const response = await fetch(`${baseUrl}/api/products/shop?${apiParams.toString()}`, {
       cache: 'no-store', // Ensure fresh data for SSR
     });
     
+    console.log('Shop API Response status:', response.status, response.statusText);
+    
     if (response.ok) {
       const data = await response.json();
-      productsData = data.products;
-      paginationData = data.pagination;
+      console.log('Shop: Products fetched successfully:', data.products?.length || 0);
+      productsData = data.products || [];
+      paginationData = data.pagination || { total: 0, totalPages: 0, hasMore: false };
+    } else {
+      console.error('Shop API response not OK:', response.status, response.statusText);
+      const errorText = await response.text();
+      console.error('Shop Error response body:', errorText);
     }
   } catch (error) {
     console.error('Failed to fetch products:', error);
