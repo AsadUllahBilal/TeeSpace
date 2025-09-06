@@ -5,7 +5,9 @@ import Category from '@/models/Category'; // Import to ensure Category model is 
 
 export async function GET(req: NextRequest) {
   try {
+    console.log('Home products API called');
     await connectDB();
+    console.log('Database connected successfully');
 
     const { searchParams } = new URL(req.url);
     const page = parseInt(searchParams.get('page') || '1');
@@ -14,6 +16,23 @@ export async function GET(req: NextRequest) {
 
     // Get total count first
     const totalProducts = await Product.countDocuments({});
+    console.log('Total products in database:', totalProducts);
+    
+    if (totalProducts === 0) {
+      console.log('No products found in database');
+      return NextResponse.json({
+        products: [],
+        pagination: {
+          page: 1,
+          limit,
+          total: 0,
+          totalPages: 0,
+          hasMore: false,
+          hasNext: false,
+          hasPrev: false
+        }
+      });
+    }
     
     // Use aggregation pipeline to randomize results
     const products = await Product.aggregate([
@@ -39,6 +58,8 @@ export async function GET(req: NextRequest) {
         }
       }
     ]);
+    
+    console.log('Products fetched:', products.length);
 
     // Calculate if there are more products available
     const hasMore = skip + limit < totalProducts;
@@ -56,10 +77,14 @@ export async function GET(req: NextRequest) {
         hasPrev: page > 1
       }
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Home products API error:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch products' },
+      { 
+        error: 'Failed to fetch products',
+        message: error.message,
+        details: error.stack 
+      },
       { status: 500 }
     );
   }
