@@ -1,5 +1,5 @@
 {
-  "buildCommand": "SKIP_ENV_VALIDATION=1 next build",
+  "buildCommand": "NEXT_TELEMETRY_DISABLED=1 SKIP_ENV_VALIDATION=1 next build",
   "installCommand": "npm install",
   "framework": "nextjs",
   "functions": {
@@ -8,6 +8,7 @@
     }
   },
   "env": {
-    "SKIP_ENV_VALIDATION": "1"
+    "SKIP_ENV_VALIDATION": "1",
+    "NEXT_TELEMETRY_DISABLED": "1"
   }
 }

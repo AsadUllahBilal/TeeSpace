@@ -14,6 +14,14 @@ const nextConfig: NextConfig = {
     // your project has TypeScript errors.
     ignoreBuildErrors: true,
   },
+  // Disable telemetry
+  compiler: {
+    removeConsole: process.env.NODE_ENV === "production",
+  },
+  // Output configuration for better compatibility
+  output: undefined, // Ensure we don't accidentally set static export
+  trailingSlash: false,
+  poweredByHeader: false,
 };
 
 export default nextConfig;
