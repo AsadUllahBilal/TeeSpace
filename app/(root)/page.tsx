@@ -1,44 +1,54 @@
+"use client";
+
 import HomeClient from "@/components/HomeClient";
 import { IProduct } from "@/types";
-import { Metadata } from "next";
+import { useState, useEffect } from "react";
 
-export const metadata: Metadata = {
-  title: "Home - TeeSpace",
-  description: "Discover stylish, high-quality t-shirts designed for comfort and confidence. From casual classics to trendy designs, we've got your perfect fit.",
-  keywords: "t-shirts, fashion, clothing, ecommerce, custom designs",
-};
+// Move to client-side rendering to avoid SSR issues on Vercel
+export default function Home() {
+  const [products, setProducts] = useState<IProduct[]>([]);
+  const [hasMore, setHasMore] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-export default async function Home() {
-  // Fetch initial products from our API with randomization
-  // Use dynamic URL construction for Vercel deployment
-  const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
-  const host = process.env.VERCEL_URL || process.env.NEXT_PUBLIC_BASE_URL?.replace(/^https?:\/\//, '') || 'localhost:3000';
-  const baseUrl = `${protocol}://${host}`;
-  
-  let products: IProduct[] = [];
-  let hasMore = false;
-  
-  try {
-    console.log('Fetching products from:', `${baseUrl}/api/products/home?page=1&limit=8&randomize=true`);
-    const response = await fetch(`${baseUrl}/api/products/home?page=1&limit=8&randomize=true`, {
-      cache: 'no-store', // Ensure fresh randomized data on each visit
-    });
-    
-    console.log('API Response status:', response.status, response.statusText);
-    
-    if (response.ok) {
-      const data = await response.json();
-      console.log('Products fetched successfully:', data.products?.length || 0);
-      products = data.products || [];
-      hasMore = data.pagination?.hasMore || false;
-    } else {
-      console.error('API response not OK:', response.status, response.statusText);
-      const errorText = await response.text();
-      console.error('Error response body:', errorText);
-    }
-  } catch (error) {
-    console.error('Failed to fetch products:', error);
-    // Continue with empty products array - component will handle gracefully
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        console.log('Client-side: Fetching products from /api/products/home');
+        const response = await fetch('/api/products/home?page=1&limit=8&randomize=true', {
+          cache: 'no-store',
+        });
+        
+        console.log('Client API Response status:', response.status, response.statusText);
+        
+        if (response.ok) {
+          const data = await response.json();
+          console.log('Client: Products fetched successfully:', data.products?.length || 0);
+          setProducts(data.products || []);
+          setHasMore(data.pagination?.hasMore || false);
+        } else {
+          console.error('Client API response not OK:', response.status, response.statusText);
+          const errorText = await response.text();
+          console.error('Client Error response body:', errorText);
+        }
+      } catch (error) {
+        console.error('Client: Failed to fetch products:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-green mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading products...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
